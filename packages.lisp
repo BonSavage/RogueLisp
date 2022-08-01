@@ -88,7 +88,7 @@
    :alivep :seesp
    :corpse-owner :spawn-corpse
    :get-gramma :get-name :get-description :get-full-name
-   :get-weapon :get-damage :get-protection :get-memory :get-dodge-coeff
+   :get-weapon :get-damage :get-protection :get-memory :get-dodge-bonus
    :get-message-buffer
    :get-state :set-state
    :get-melee-damage
@@ -187,7 +187,7 @@
    :merge-stacks :item-stack
    :make-item :make-stack :make-free-item
    :make-stack
-   :free-item
+   :free-item :copy-item
    :get-gramma :get-description))
 
 (defpackage :rl.inventory

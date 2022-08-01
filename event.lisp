@@ -114,7 +114,7 @@
 (defun hit(attacker attackee)
   "Melee hit"
   (let-be [dmg (get-damage attacker)
-	   dodgesp (rl.combat:dodgesp dmg (get-dodge-coeff attackee))]
+	   dodgesp (rl.combat:dodgesp dmg (get-dodge-bonus attackee))]
 	  (report-attack attacker attackee dodgesp)
 	  (unless dodgesp
 	   (when (zerop (take-damage attackee dmg))
