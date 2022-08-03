@@ -8,8 +8,11 @@
   (rnd:throw-dices (damage-damage info)))
 
 (defun dodgesp(damage dodge-check)
-  (<= (random (+ 100 (damage-hit-check damage)))
-      (+ 50 dodge-check)))
+  (< (random 100)
+      (grant-bounds (+ 50 dodge-check (- (damage-hit-check damage)))
+		    0
+		    100)))
+		    
 
 (defun calculate-attack(damage armor)
   (- (damage-count damage)
