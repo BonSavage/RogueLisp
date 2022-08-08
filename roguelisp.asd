@@ -2,7 +2,7 @@
 
 (defsystem "roguelisp"
   :description "Semi-declarative Common Lisp roguelike engine"
-  :version "0.7"
+  :version "0.7.3"
   :depends-on ("cffi" "BonSavage")
   :components ((:file "utils")
 	       (:file "packages")
@@ -23,7 +23,8 @@
 	       (:file "sound")
 	       (:file "message" :depends-on ("entity" "level"))
 	       (:file "perception" :depends-on ("coordinates" "level" "ui"))
-	       (:file "event" :depends-on ("entity" "coordinates"))
+	       (:file "effect" :depends-on ("names" "entity"))
+	       (:file "event" :depends-on ("entity" "effect" "coordinates"))
 	       (:file "ai" :depends-on ("event" "entity"))
 	       (:file "level" :depends-on ("map" "entity"))
 	       (:file "generator" :depends-on ("level"  "random"))

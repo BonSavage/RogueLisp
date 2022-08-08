@@ -82,9 +82,10 @@
   (:documentation "Entities existing on level")
   (:use :common-lisp :cl-user :rl.coordinates :rl.names :rl.combat)
   (:export
-   :entity :proto-creature :corpse :item-stack :proto-trap :proto-actor
+   :entity :proto-creature :corpse :proto-trap :proto-actor
    :can-move-p 
-   :get-pos :get-hp :get-max-hp :get-speed :get-damage
+   :get-pos :get-hp :get-max-hp :get-speed :get-damage :get-inventory
+   :get-effects :invoke-effect
    :alivep :seesp
    :corpse-owner :spawn-corpse
    :get-gramma :get-name :get-description :get-full-name
@@ -93,9 +94,19 @@
    :get-state :set-state
    :get-melee-damage
    :take-damage :decrease-health :die
-   :perform-movement :on-position-change
+   :perform-movement
+   :on-position-change :on-turn-start :on-turn-end
    :make-creature)
   (:intern :report-death))
+
+(defpackage :rl.effect
+  (:use :cl :cl-user :rl.names :rl.entity)
+  (:export
+   :make-effect
+   :effect
+   :durable-effect :resistance
+   :resistance-type :effect-duration
+   :update-effect-state :effect-activep))
 
 ;;;Map & level
 (defpackage :rl.terrain
@@ -167,6 +178,7 @@
   (:use :common-lisp :cl-user :rl.coordinates :rl.entity :rl.ui :rl.map)
   (:nicknames :rl.fov)
   (:export :fov :fov-info :make-fov :update-fov :get-gramma :get-plan-gramma :visiblep :seenp :get-center :get-fov :fov-entity-positions :visible-entities
+	   :fov-pos-entities
 	   :vision-visiblep :fov-pos-description
 	   :vision :fov-marks :mark-gramma)
   (:intern :make-mark :mark :fov-shadowcast)
@@ -187,6 +199,7 @@
    :merge-stacks :item-stack
    :make-item :make-stack :make-free-item
    :make-stack
+   :stack-use :use
    :free-item :copy-item
    :get-gramma :get-description))
 
@@ -231,14 +244,15 @@
   (:import-from :rl.ui :draw-rectangle :draw-string :draw-gramma :draw-frame :draw-simple-gramma :chars))
 
 (defpackage :rl.event
-  (:use :cl :cl-user :rl.entity :geom :rl.message)
+  (:use :cl :cl-user :rl.entity :geom :rl.message :rl.effect)
   (:export :add-event :take-turn :event
 	   :make-turn :make-update :make-thunk-event :update-entity
+	   :make-effect-update
 	   :process-events :exec :entity
 	   :event-energy
 	   :event :turn :action
 	   :move-random! :move-accurate! :try-to-move!
-	   :interact-with-cell!
+	   :interact-with-cell! :apply-effect!
 	   :hit))
 
 (defpackage :rl.state
@@ -252,15 +266,12 @@
 	   :action-execute :valid-action-p
 	   :wander :move-to-point :move-dir :follov :fight))
 
-(defpackage :rl.effects
-  (:export :make-effect))
-
 ;;General package
 
 (define-extension :rl.game (:rl.random :rl.coordinates :rl.map
 				       :rl.level :rl.combat :rl.generator
 			    :rl.perception :rl.item :rl.inventory :rl.event
-				       :rl.entity :rl.state :rl.sound :rl.ai :rl.effects :rl.names)
+				       :rl.entity :rl.state :rl.sound :rl.ai :rl.effect :rl.names)
   (:use :cl :cl-user)
   (:documentation "Package for game definitions")
   (:shadowing-import-from :rl.entity :get-gramma)

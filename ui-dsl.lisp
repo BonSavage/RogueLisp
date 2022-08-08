@@ -271,7 +271,7 @@
 (defun extract-sections(sequence)
   (pm/amatch (0 sequence nil)
 	     self(_ nil res) (reverse res)
-	     self(pos (hd . tl) res) (self (+ 0 (section-length hd))
+	     self(pos (hd . tl) res) (self (+ pos (section-length hd))
 					   tl
 					 (cons (make-menu-section
 						:name (section-heading hd)

@@ -55,6 +55,10 @@
 (defclass thunk-event(event)
   ((thunk :type (function () t) :initarg :thunk)))
 
+(defclass effect-update(event)
+  ((effect :initarg :effect :reader effect)
+   (creature :initarg :creature :reader creature)))
+
 (defclass action(turn)
   ())
 
@@ -68,8 +72,18 @@
 (defun make-thunk-event(thunk eu)
   (make-instance 'thunk-event :thunk thunk :energy eu))
 
+(defun make-effect-update(effect creature &optional (energy 0))
+  (make-instance 'effect-update
+		 :effect effect
+		 :creature creature
+		 :energy energy))
+
 (defmethod exec((ev turn))
-  (rl.state:state-execute (get-state (entity ev)) ev))
+  (on-turn-start (entity ev))
+  (aif (rl.state:state-execute (get-state (entity ev)) ev)
+       (progn
+	 (on-turn-end (entity ev) (event-energy it))
+	 it)))
 
 (defmethod exec((turn map-entity-turn))
   (update-entity (entity turn) (get-pos turn)))
@@ -77,23 +91,69 @@
 (defmethod exec((event thunk-event))
   (funcall (-> event thunk)))
 
+(defmethod exec((event effect-update))
+  (apply-effect! (effect event) (creature event)))
+
 (defmethod take-turn(entity turn)
   (rl.ai:action-execute turn (entity turn)))
+
+;;Creature hooks
+(defmethod on-turn-start((creature proto-creature))
+  (psetf (get-effects creature)
+	 (delete-if (complement #'effect-activep)
+		    (get-effects creature))))
+
+(defmethod on-turn-end((creature proto-creature) delta)
+  (iter
+   (for ef in (get-effects creature))
+   (update-effect-state ef delta)))
+
+;;Effects
+;;TODO: Can we make it more functional? It's imperative and ugly now
+
+(defgeneric apply-effect!(effect creature)) ;It is subpredicate
+
+(defmethod apply-effect! :around (effect creature)
+  (when (find effect (get-effects creature))
+    (call-next-method)))
+
+(defmethod apply-effect!(effect creature) nil)
+
+(defun resistance-from-p(eff1 eff2)
+  (and (typep eff1 'resistance)
+       (typep eff2 (resistance-type eff1))))
+
+(defmethod invoke-effect(creature effect)
+  (if (find-if (lambda (eff) (resistance-from-p eff effect)) (get-effects creature))
+      nil
+      (push effect (get-effects creature))))
+
+(defmethod invoke-effect(creature (effect durable-effect))
+  (aif (call-next-method)
+       (progn
+	 (add-event (make-effect-update effect creature))
+	 it)))
+
+(defmethod invoke-effect(creature (effect resistance))
+  (when (call-next-method)
+    (setf (get-effects creature)
+	  (delete-if (lambda (eff) (resistance-from-p effect eff))
+		     (get-effects creature)))))
 
 ;;Standard events
 
 (defun move-accurate!(creature dir)
   "Smart move"
   (or
-	 (interact-with-cell! creature dir)
-	 (interact-with-cell! creature (find-best (lambda (p1 p2) (if (and (can-move-p creature p1)
-									   (or (< (distance dir p1) (distance dir p2))
-									       (and (= (distance dir p1) (distance dir p2)) (rnd:bernoulli))))
-								      p1
-								      p2))
-						  (neighbours-delta)))
-	 (try-to-move! creature (make-pos 0 0))
-	 (error "~a failed to move from ~a to ~a" creature (get-pos creature) (add (get-pos creature) dir))))
+   (interact-with-cell! creature dir)
+   (interact-with-cell! creature (find-best (lambda (p1 p2) (if (and (can-move-p creature p1)
+								     (or (< (distance dir p1) (distance dir p2))
+									 (and (= (distance dir p1) (distance dir p2)) (rnd:bernoulli))))
+								p1
+								p2))
+					    (neighbours-delta)))
+   (try-to-move! creature (make-pos 0 0))
+   (error "~a failed to move from ~a to ~a" creature (get-pos creature) (add (get-pos creature) dir))))
 
 (defmethod try-to-move!(creature (dir pos))
   (if (and (zerop (x dir)) (zerop (y dir)))
@@ -119,4 +179,3 @@
 	  (unless dodgesp
 	   (when (zerop (take-damage attackee dmg))
 	     (report-reflection attackee)))))
-	 

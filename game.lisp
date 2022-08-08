@@ -15,4 +15,5 @@
 (defun add-creature(pos type &rest other-args)
   (add-event (make-turn (apply #'make-creature type :pos pos other-args) 100)))
 
-(defmethod add-effect(creature type duration))
+(defun add-effect(creature type &rest args)
+  (rl.entity:invoke-effect creature (apply #'rl.effect:make-effect type args)))

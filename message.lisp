@@ -60,4 +60,5 @@
   (add-note (get-message-buffer creature) (msg (apply #'formatted format-string args))))
 
 (defmethod report-death((creature proto-creature))
-  (message-report (msg "~a dies." (word-capitalize (get-name creature)))))
+  (message-report (msg (formatted "~a dies." (word-capitalize (get-name creature))))))
+

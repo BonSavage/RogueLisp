@@ -48,6 +48,12 @@
 (defmethod get-name((entity corpse))
   (formatted "a corpse of ~a" (get-name (corpse-owner entity))))
 
+;;Updates (pseudo-hooks)
+
+(defgeneric on-turn-start(creature))
+(defgeneric on-turn-end(creature delta))
+(defgeneric on-position-change(creature delta))
+
 ;;Oh, life and death...
 
 (defmethod spawn-corpse((creature proto-creature))
@@ -68,8 +74,6 @@
        (> (get-hp creature) 0)))
 
 ;;Movement
-
-(defgeneric on-position-change(creature delta))
 
 (defmethod perform-movement((creature proto-creature) (delta pos))
   (progn
@@ -110,6 +114,10 @@
 (defmethod seesp(caller (cell pos))
   (geom:trace-line (lambda (p) (not (rl.map:solidp p)))
 		   (geom:cell-line cell (get-pos caller))))
+
+;;Effects
+
+(defgeneric invoke-effect(creature effect))
 
 ;;Traps
 

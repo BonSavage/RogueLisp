@@ -21,14 +21,19 @@
   ((protection :reader get-protection :allocation :class)))
 
 (defgeneric same-item-p(item1 item2))
-(defgeneric use(item user))
+(defgeneric use(item stack user))
 (defgeneric reload(firearm ammo-stack))
 (defgeneric take-shot(firearm))
 (defgeneric get-melee-damage(weapon))
 (defgeneric get-speed(weapon))
+(defgeneric use(item stack user))
 
-(defmethod use((item usable) inventory)
-  (rl.inventory:take-stack inventory item))
+(defmethod use((item usable) stack user)
+  (declare (ignore item))
+  (rl.inventory:take-stack (rl.entity:get-inventory user) (item-stack item)))
+
+(defun stack-use(stack user)
+  (use (stack-item stack) stack user))
 
 (defmethod get-description((item item))
   (formatted "~a~&Weight: ~a~&Condition: ~a%~&" (-> item description) (-> item weight) (* 100(-> item condition))))

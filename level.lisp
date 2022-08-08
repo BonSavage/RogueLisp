@@ -46,7 +46,7 @@
   (localf f(type) (find-if (of-type type) entities)
 	  (acond
 	   ((f 'rl.entity:proto-creature) (rl.entity:get-gramma it))
-	   ((f '(or rl.entity:item-stack rl.entity:corpse))
+	   ((f '(or rl.item:item-stack rl.entity:corpse))
 	    (if (f 'rl.entity:proto-trap)
 		(rl.ui:augment-gramma (rl.entity:get-gramma it) :background (rl.ui:color :orange))
 		(rl.entity:get-gramma it)))
