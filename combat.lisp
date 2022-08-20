@@ -1,6 +1,6 @@
 (in-package :rl.combat)
 
-(defstruct (basic-damage (:constructor damage (damage &optional (hit-check 0) (type 'mechanic))) (:conc-name damage-))
+(defstruct (basic-damage (:conc-name damage-))
   (damage (rnd:dices 0 0) :type rnd:dices)
   (hit-check 0 :type fixnum))
 

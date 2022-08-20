@@ -1,6 +1,6 @@
 (in-package :rl.light)
 
-(defvar *lightmap* (make-map-array :initial-element 0 :element-type 'bit))
+(defparameter *lightmap* nil)
 (declaim (type (map-array bit) *lightmap*))
 
 ;;;Light
@@ -26,7 +26,7 @@
 
 (defun light-setter(source)
   (lambda (pos)
-    (unless (map:obstaclep pos)
+    (unless (rl.map:obstaclep pos)
       (setf (pref *lightmap* pos) 1))))
 
 (defun shadow-setter(source)
@@ -39,7 +39,7 @@
 (defun light-on(source &optional (ctg-sequence '((-1 1) (-1 1) (-1 1) (-1 1))))
   (awith (light-setter source)
     (funcall it (light-center source))
-    (map:shadowcast it (light-center source) :bound (radius-bound source) :bound-test (in-radius source) :ctg-sequence ctg-sequence)))
+    (rl.map:shadowcast it (light-center source) :bound (radius-bound source) :bound-test (in-radius source) :ctg-sequence ctg-sequence)))
 
 (defun light-off(source)
   (fill-circle (shadow-setter source) source)

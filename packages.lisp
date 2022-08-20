@@ -109,51 +109,52 @@
    :update-effect-state :effect-activep))
 
 ;;;Map & level
+
 (defpackage :rl.terrain
-  (:use :cl :cl-user :rl.names)
-  (:export :obstaclep :solidp :blockedp
-   :door :openp :open-door :close-door
-   :attack-cell :close-door
-   :destroyedp :interact
-   :terrain :hit-terrain
-   :map-cell :attack-cell
-   :interact-with-cell :terrain-interact
+  (:use :cl :cl-user :rl.coordinates
+	:rl.names)
+  (:export
+   :terrain-obstaclep :terrain-solidp :terrain-blockingp ;:litp
    :terrain-name :terrain-gramma
+   :door :openp :open-door :close-door
+   :destroyedp
+   :terrain
+   :terrain-pos
+   :hit-terrain
+   :proto-door
    :terrain-decorator :decorated
-   :define-terrain))
+   :decorator-instance
+   :terrain-interact
+   :%add-terrain)
+  (:intern :!terrain-pos!))
 
 (defpackage :rl.map
-  (:use :common-lisp :cl-user :rl.coordinates :rl.names)
-  (:nicknames :map)
-  (:export  :make-map-array :*map* :+size+ :+map-rect+ :in-map-bound-p :grant-on-map :map-array
-   :initiate-map
-	    :pos-gramma :pos-name :obstaclep :solidp :blockedp :litp
-	    :door :openp :open-door :close-door
-	    :search-terrain :attack-cell :destroyedp
-   :decorate-terrain
-	    :interact
-   :pos-cell
-	    :map-cell
-   :shadowcast
+  (:use :common-lisp :cl-user :rl.coordinates :rl.terrain)
+  (:export  :make-map-array
+	    :*map* :+size+ :+map-rect+
+	    :in-map-bound-p :grant-on-map
+	    :obstaclep :solidp :blockedp
+   :map-array
+   :mref
+	    :initiate-map
+	    :pos-gramma :pos-name
+	    :attack-cell
+	    :delete-decorator
+	    :shadowcast
 	    :litp
-   :fill-circle
-	    :terrain :hit-terrain
-	    :terrain-obstaclep :terrain-solidp :terrain-blockingp
-   :terrain-interact
-	    :terrain-name :terrain-gramma
-	    :define-terrain :terrain-decorator
-	    :decorated
-	    :decorator-instance)
-  (:intern :update-lights))
+	    :with-terrain)
+  (:intern :update-lights)
+  (:import-from :rl.terrain :!terrain-pos!))
 
 (defpackage :rl.light
   (:use :common-lisp :cl-user :rl.map :rl.coordinates)
-  (:export 
+  (:export
+   :*lightmap*
    :replace-light
    :create-light
    :remove-light
    :update-lights)
-  (:import-from :map :litp :update-lights))
+  (:import-from :rl.map :litp :update-lights))
 
 (defpackage :rl.level
   (:use :common-lisp :cl-user :rl.coordinates :rl.map :rl.entity)
@@ -271,7 +272,8 @@
 (define-extension :rl.game (:rl.random :rl.coordinates :rl.map
 				       :rl.level :rl.combat :rl.generator
 			    :rl.perception :rl.item :rl.inventory :rl.event
-				       :rl.entity :rl.state :rl.sound :rl.ai :rl.effect :rl.names)
+			    :rl.entity :rl.state :rl.sound :rl.ai :rl.effect :rl.names
+			    :rl.terrain)
   (:use :cl :cl-user)
   (:documentation "Package for game definitions")
   (:shadowing-import-from :rl.entity :get-gramma)
@@ -282,6 +284,7 @@
    :add-trap
    :add-effect
    :add-event
+   :add-decorator
    :build-info))
 
 (define-extension :roguelisp (:rl.game)

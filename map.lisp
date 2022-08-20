@@ -1,87 +1,38 @@
 ;;;; Map without entities. Only terrain.
-;;;; TODO: Separate from terrain just like level is separated from entity
 ;;;;
 
 (in-package :rl.map)
 
-(defconstant +size+ (make-pos 48 48) "Size of the map")
-(defconstant +map-rect+ (make-rect (make-pos 0 0) +size+))
-(defvar *map* nil)
+;;(defconstant +size+ (make-pos 48 48) "Size of the map")
+;;(defconstant +map-rect+ (make-rect (make-pos 0 0) +size+))
+;;(defvar *map* nil)
+
+(defvar +size+)
+(defvar +map-rect+)
+(defvar *map*)
 
 (defun make-map-array(&rest args)
   (apply #'make-array (cons (list (x +size+) (y +size+)) args)))
 
-(deftype map-array(elem-type)
-  `(array ,elem-type (,(x +size+) ,(y +size+))))
-
 ;;Terrain
-(defgeneric terrain-interact(terrain entity)
-  (:method  (terrain entity) (declare (ignore terrain entity)) nil))
-(defgeneric terrain-obstaclep(terrain))
-(defgeneric terrain-solidp(terrain))
-(defgeneric terrain-gramma(terrain))
-(defgeneric terrain-name(terrain))
 
-(defclass terrain()
-  ((movement-coeff :initform 1 :allocation :class :reader movement-coeff)))
+(defun attack-cell(pos damage)
+  (hit-terrain (mref pos) damage))
 
-(defclass terrain-info(terrain)
-  ((gramma :type rl.ui:gramma :reader terrain-gramma :initarg :gramma)
-   (blockingp :type boolean :reader terrain-blockingp :initarg :blockingp :documentation "Used by pathfinding algorithms.")
-   (obstaclep  :type boolean :reader terrain-obstaclep :initarg :obstaclep :documentation "General property used when the creature tries to move and in many other cases.")
-   (solidp :type boolean :reader terrain-solidp :initarg :solidp)
-   (name :type string :reader terrain-name :initarg :name)
-   (movement-coeff :type real :initarg :movement-coeff)))
+(defun remove-decorator(terrain decorator)
+  (cond ((eq terrain decorator)
+	 (decorated terrain))
+	((typep terrain 'terrain-decorator)
+	 (psetf (decorated terrain) (remove-decorator (decorated terrain)
+						      decorator)))
+	(t terrain)))
 
-(eval-when (:compile-toplevel)
-  (defmethod print-object((object terrain-info) stream)
-    (format stream "<Terrain ~a>" (-> object name))))
-
-(defmacro define-terrain(terrain-name &key gramma obstacle solid name (movement-coeff 1.0))
-  `(eval-when (:compile-toplevel :execute :load-toplevel)
-     (progn
-       (setf (get ',terrain-name 'terrain ) (load-time-value (make-instance 'terrain-info :gramma ,gramma :obstaclep ,obstacle :solidp ,solid :blockingp ,obstacle :name ,name :movement-coeff ,movement-coeff) t))
-       (export ',terrain-name)
-       (deftype ,terrain-name()
-	 `'(eql ,(get ',terrain-name 'terrain))))))
-
-(define-terrain wall
-  :gramma (rl.ui:static-gramma #\# (rl.ui:color :gray))
-  :obstacle t
-  :solid t
-  :name "concrete wall")
-
-(defmacro terrain(symbol)
-  `(load-time-value (or (get ',symbol 'terrain) (error "MAP: Undefined terrain name: ~a" ',symbol))))
-
-(defclass terrain-decorator(terrain)
-  ((decorated :type terrain :initarg :decorated :accessor decorated)))
-
-(defun attack-cell(pos count)
-  (hit-terrain (mref pos) count pos))
-
-(defun door-open(door pos)
-  (psetf (openp door) t)
-  (update-lights pos))
-
-(defun door-close(door pos)
-  (psetf (openp door) nil)
-  (update-lights pos))
-
-(defgeneric decorator-instance(decorator))
-
-(defmethod decorator-instance(dec)
-  dec)
-
-(defun decorate-terrain(pos decorator-name &rest args)
-  (psetf (pref *map* pos) (decorator-instance (apply #'make-instance decorator-name :decorated (mref pos) args))))
-
-(defun remove-decorator(pos decorator)
-  (psetf (pref *map* pos) (delete decorator (mref pos) :test #'eq)))
+(defun delete-decorator(pos decorator)
+  (psetf (pref *map* pos)
+	 (remove-decorator (mref pos) decorator)))
 
 ;;Map
 
-(defparameter *map* (make-map-array :initial-element (terrain wall) :element-type 'terrain-info))
 (declaim (type (map-array terrain-info) *map*))
 
 (defun mref(p)
@@ -97,9 +48,9 @@
 
 ;;Map accessors
 
-(defstruct (map-cell (:conc-name cell-))
-  (terrain nil :type terrain)
-  (pos nil :type pos))
+;(defstruct (map-cell (:conc-name cell-))
+;  (terrain nil :type terrain)
+;  (pos nil :type pos))
 
 (defun obstaclep(p)
   (terrain-obstaclep (mref p)))
@@ -118,29 +69,29 @@
 
 (defun search-terrain(pos type)
   (alet [it (mref pos)]
-    (cond ((typep it 'terrain-decorator) (self (decorated it)))
-	  ((typep it type) (make-map-cell :terrain it :pos pos)))))
+    (cond
+      ((typep it type) it)
+      ((typep it 'terrain-decorator) (self (decorated it))))))
 
-(defun open-door(cell)
-  (door-open (cell-terrain cell) (cell-pos cell)))
+(defmacro with-terrain((terrain-name p &optional (type t)) &body forms)
+  "Interface for map cell. ALWAYS interact with cell only in this context!"
+  `(let* ((!terrain-pos! ,p)
+	  (,terrain-name (search-terrain !terrain-pos! ,type)))
+     (declare (special !terrain-pos!))
+     ,@forms))
 
-(defun close-door(cell)
-  (door-close (cell-terrain cell) (cell-pos cell)))
+;;Map instance
 
-(defmethod destroyedp((cell map-cell))
-  (destroyedp (cell-terrain cell)))
-
-(defmethod openp((cell map-cell))
-  (openp (cell-terrain cell)))
-
-(defun interact(creature cell)
-  (terrain-interact (cell-terrain cell) creature))
-
-(defun map-cell(p)
-  (make-map-cell :terrain (mref p) :pos p))
+(defmacro initiate-map(size initial-element)
+  `(progn
+     (defconstant +size+ ,size)
+     (defconstant +map-rect+ (make-rect (make-pos 0 0) +size+))
+     (defparameter *map* (make-map-array :initial-element ,initial-element :element-type 'terrain))
+     (defparameter rl.light:*lightmap* (make-map-array :initial-element 0 :element-type 'bit))
+     (deftype map-array(elem-type)
+       `(array ,elem-type (,(x +size+) ,(y +size+))))))
 
 ;;Algorithms
-
 
 (defun shadowcast(setter center &key (bound (lambda (i j) i)) (bound-test #'in-map-bound-p) (ctg-sequence '((-1 1) (-1 1) (-1 1) (-1 1))))
   "Classic shadowcast implementation"
