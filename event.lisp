@@ -171,11 +171,20 @@
 
 ;;Hit
 
+(defgeneric entity-hit(weapon attackee))
+
+(defun hit-proc(attacker attackee)
+  (let-be [dmg (get-damage attacker)
+	   dodgesp (rl.combat:dodgesp dmg (get-dodge-bonus attackee))
+	   real-dmg (if dodgesp 0 (take-damage attackee dmg))]
+    (report-attack attacker attackee dodgesp)
+    (unless (or dodgesp (/= real-dmg 0))
+      (report-reflection attackee))
+    (values dmg real-dmg dodgesp)))
+
+(defmethod entity-hit(attacker attackee)
+  (hit-proc attacker attackee))
+
 (defun hit(attacker attackee)
   "Melee hit"
-  (let-be [dmg (get-damage attacker)
-	   dodgesp (rl.combat:dodgesp dmg (get-dodge-bonus attackee))]
-	  (report-attack attacker attackee dodgesp)
-	  (unless dodgesp
-	   (when (zerop (take-damage attackee dmg))
-	     (report-reflection attackee)))))
+  (entity-hit attacker attackee))

@@ -26,6 +26,7 @@
   (:nicknames :geom)
   (:use :cl-user :common-lisp)
   (:export :raw-line :cell-line :trace-line :cast-ray :doray :cell-find-if
+	   :cell-find-before
 	   :coordinates :pos
 	   :rect :start :end :size
 	   :x :y :make-pos :add :sub :make-rect :distance-point
@@ -83,7 +84,7 @@
   (:use :common-lisp :cl-user :rl.coordinates :rl.names :rl.combat)
   (:export
    :entity :proto-creature :corpse :proto-trap :proto-actor
-   :can-move-p 
+   :can-move-p :valid-position-p
    :get-pos :get-hp :get-max-hp :get-speed :get-damage :get-inventory
    :get-effects :invoke-effect
    :alivep :seesp
@@ -254,7 +255,7 @@
 	   :event :turn :action
 	   :move-random! :move-accurate! :try-to-move!
 	   :interact-with-cell! :apply-effect!
-	   :hit))
+	   :hit :entity-hit))
 
 (defpackage :rl.state
   (:use :cl :cl-user :rl.event)

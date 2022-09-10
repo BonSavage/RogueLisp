@@ -15,6 +15,8 @@
 (defgeneric get-memory(creature))
 (defgeneric get-protection(creature))
 (defgeneric get-gramma(entity))
+(defgeneric get-effects(creature))
+(defgeneric get-state(creature))
 ;;Primitive mutators (used by event commands)
 (defgeneric perform-movement(creature delta))
 (defgeneric die(creature)) 
@@ -26,8 +28,7 @@
 ;;And generic class
 
 (defclass proto-creature(entity)
-  ((state :initform (rl.state:make-state 'rl.state:standard-state) :type state :initarg :state :accessor get-state)
-   (effects :initform nil :type list :accessor get-effects)))
+  ())
 
 (defun make-creature(type &rest args)
   (awith (apply #'make-instance type args)
@@ -75,6 +76,8 @@
 
 ;;Movement
 
+(defgeneric valid-position-p(creature pos))
+
 (defmethod perform-movement((creature proto-creature) (delta pos))
   (progn
     (rl.level:remove-entity (get-pos creature) creature)
@@ -85,7 +88,11 @@
   (on-position-change creature delta))
 
 (defmethod can-move-p((creature proto-creature) (dir pos))
-  (and (null (rl.level:get-entities (add (get-pos creature) dir) 'proto-creature)) (not (rl.map:obstaclep (add (get-pos creature) dir)))))
+  (valid-position-p creature (add (get-pos creature) dir)))
+
+(defmethod valid-position-p((creature proto-creature) pos)
+  (and (null (rl.level:get-entities pos 'proto-creature))
+       (not (rl.map:obstaclep pos))))
 
 ;;Damage & combat
 

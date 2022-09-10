@@ -185,6 +185,14 @@
 						 nil
 						 (self (force tl))))))
 
+(defun cell-find-before(stop-predicate line)
+  (pm/amatch (line (stream-car line))
+	     self(nil last) last
+	     self((hd . tl) butlast) (if (some stop-predicate hd)
+					 butlast
+					 (self (force tl) hd))))
+				 
+
 (defun distance(pos1 pos2)
   "Cell distance"
   (awith (sub pos2 pos1)
