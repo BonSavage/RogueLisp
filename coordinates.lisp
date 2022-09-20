@@ -145,27 +145,38 @@
 ;;;Cell
 
 (defun raw-line(delta)
-  (let ((x (x delta))
-	(y (y delta)))
+  (let-be [x (x delta)
+	   y (y delta)]
+    (stream-drop
+     (lambda (pair) (and (= (car pair) x) (= (cdr pair) y)))
+     (raw-ray delta))))
+
+(defun raw-ray(delta)
+  (let-be [x (x delta)
+	   y (y delta)]
     (mvb (dx dy) (let ((matches (> (abs x) (abs y))))
 		   (values (if (or matches (zerop y)) (signum x) (/ x (abs y))) (if matches (/ y (abs x)) (signum y))))
-	 (stream-drop
-	  (lambda (pair) (and (= (car pair) x) (= (cdr pair) y)))
-	  (alet ((cx dx) (cy dy))
-	    (cons-stream (cons cx cy) (self (+ cx dx) (+ cy dy))))))))
+	 (alet ((cx dx) (cy dy))
+	   (cons-stream (cons cx cy) (self (+ cx dx) (+ cy dy)))))))
 
 (defun coordinate-test(c)
   (= (abs (rem c 1)) .5))
 
-(defun cell-line(p0 p1) ;Must be refactored
-  (let ((base-x (x p0))
-	(base-y (y p0)))
+(defun raw-prepared(base ray)
+  (let-be [base-x (x base)
+	   base-y (y base)]
     (stream-map
      (lambda (p &aux (x (car p)) (y (cdr p)) (x-test (coordinate-test x)) (y-test (coordinate-test y)))
        (cons (make-pos (round-down (+ base-x x)) (round-down (+ base-y y)))
 	     (when (xor x-test y-test)
 	       (list (make-pos (round-up (+ base-x x)) (round-up (+ base-y y)))))))
-     (raw-line (sub p1 p0)))))
+     ray)))
+
+(defun cell-line(p0 p1)
+  (raw-prepared p0 (raw-line (sub p1 p0))))
+
+(defun cell-ray(p0 p1)
+  (raw-prepared p0 (raw-ray (sub p1 p0))))
 
 (defun cell-find-if(predicate ray)
   (find predicate (stream-find-if (lambda (list) (some predicate list)) ray)))

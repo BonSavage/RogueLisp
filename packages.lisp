@@ -25,7 +25,7 @@
   (:documentation "All related to geometry")
   (:nicknames :geom)
   (:use :cl-user :common-lisp)
-  (:export :raw-line :cell-line :trace-line :cast-ray :doray :cell-find-if
+  (:export :raw-line :cell-line :cell-ray :trace-line :cast-ray :doray :cell-find-if
 	   :cell-find-before
 	   :coordinates :pos
 	   :rect :start :end :size
@@ -75,9 +75,10 @@
   (:use :cl :cl-user)
   (:export :dmg :damage-count :dodgesp
    :protection
-   :damage :hit-check
+   :damage :hit-check :damage-real-hit-check
 	   :basic-damage
-	   :calculate-attack))
+	   :calculate-attack
+	   :projectile :projectile-start :projectile-end))
 
 (defpackage :rl.entity
   (:documentation "Entities existing on level")
