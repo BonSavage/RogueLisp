@@ -493,13 +493,6 @@
   (lambda (lines size)
     (append lines (text-lines (rl.message:pop-unprinted buffer) (x size)))))
 
-(defun fov-description(fov)
-  (lambda (lines size)
-    (declare (ignore lines))
-    (text-lines (list (str (formatted "X: ~a Y: ~a" (+ (x (rl.perception:get-center fov)) (x (-> fov focus))) (+ (y (rl.perception:get-center fov))(y (-> fov focus)))))
-		      (str (rl.perception:fov-pos-description fov (add (rl.perception:get-center fov) (-> fov focus)))))
-		(x size))))
-
 (defun text-source(&rest gstrs)
   (lambda (lines size)
     (declare (ignore lines))

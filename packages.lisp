@@ -78,7 +78,8 @@
    :damage :hit-check :damage-real-hit-check
 	   :basic-damage
 	   :calculate-attack
-	   :projectile :projectile-start :projectile-end))
+   :projectile :projectile-start :projectile-end
+   :projectile-trajectory))
 
 (defpackage :rl.entity
   (:documentation "Entities existing on level")
@@ -230,7 +231,7 @@
   (:export
    :change-layer
    :define-panel
-   :lookup-fov :make-lookup-fov :make-target-fov :fov-description :move-focus :target-fov :get-map-focus :next-target
+   :lookup-fov :make-lookup-fov :make-target-fov :move-focus :target-fov :get-map-focus :next-target
    :field :rect :pos :str :line 
    :page :catalogue :text :plain
    :section
@@ -243,7 +244,8 @@
    :string-select
    :view-instance :selected-description :instance
    :horizontal-split :vertical-split
-   :text-source :sources-append :buffer-source)
+   :text-source :sources-append :buffer-source
+   :get-focus :text-lines)
   (:import-from :rl.ui :draw-rectangle :draw-string :draw-gramma :draw-frame :draw-simple-gramma :chars))
 
 (defpackage :rl.event
@@ -265,7 +267,8 @@
 
 (defpackage :rl.ai
   (:use :rl.entity :rl.state :rl.event :cl :cl-user)
-  (:export :jump :continuate :go-next :ai-state
+  (:export :jump :continuate :go-next :subaction :ai-state
+	   :make-ai-state
 	   :action-execute :valid-action-p
 	   :wander :move-to-point :move-dir :follov :fight))
 

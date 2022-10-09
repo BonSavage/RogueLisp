@@ -65,10 +65,10 @@
 
 (defmethod die((creature proto-creature))
   (unless (alivep creature)
-    (report-death creature)
     (rl.level:remove-entity (get-pos creature) creature)
     (set-state creature (rl.state:make-state 'rl.state:dead))
-    (spawn-corpse creature)))
+    (spawn-corpse creature)
+    (report-death creature)))
 
 (defmethod alivep(creature)
   (and (not (typep (get-state creature) 'rl.state:dead))

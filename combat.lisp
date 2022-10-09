@@ -11,7 +11,7 @@
   (grant-bounds hit-check 0 100))
 
 (defun damage-real-hit-check(dmg)
-  (hit-check-bounds (damage-hit-check dmg)))
+  (hit-check-bounds (+ 50 (damage-hit-check dmg))))
 
 (defun dodgesp(damage dodge-check)
   (< (random 100)
@@ -31,4 +31,4 @@
    (end :initarg :end :reader projectile-end)))
 
 (defmethod projectile-trajectory((projectile projectile))
-  (geom:cell-line start end))
+  (geom:cell-line (projectile-start projectile) (projectile-end projectile)))

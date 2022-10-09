@@ -6,12 +6,25 @@
 (defclass ai-state(action)
   ((next-action :initform nil :initarg :next :type ai-state :reader action-next)))
 
+(defun make-ai-state(type entity energy &rest other-args)
+  (apply #'make-instance type
+	 :entity entity
+	 :energy energy
+	 other-args))
+
 (defun go-next(ai-state)
   (action-execute
    (aif (action-next ai-state)
 	it
 	(make-turn (entity ai-state) 0))
    (entity ai-state)))
+
+(defun subaction(turn action-type energy &rest other-args)
+  (apply #'make-ai-state action-type
+	 (entity turn)
+	 energy
+	 :next turn
+	 other-args))
 
 (defun continuate(state turn &rest other-args)
   (apply #'make-instance (type-of state)

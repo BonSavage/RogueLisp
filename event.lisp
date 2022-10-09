@@ -175,12 +175,12 @@
 
 (defun hit-proc(attacker attackee)
   (let-be [dmg (get-damage attacker)
-	   dodgesp (rl.combat:dodgesp dmg (get-dodge-bonus attackee))
-	   real-dmg (if dodgesp 0 (take-damage attackee dmg))]
+	   dodgesp (rl.combat:dodgesp dmg (get-dodge-bonus attackee))]
     (report-attack attacker attackee dodgesp)
-    (unless (or dodgesp (/= real-dmg 0))
-      (report-reflection attackee))
-    (values dmg real-dmg dodgesp)))
+    (let-be [real-dmg (if dodgesp 0 (take-damage attackee dmg))]
+      (unless (or dodgesp (/= real-dmg 0))
+	(report-reflection attackee))
+      (values dmg real-dmg dodgesp))))
 
 (defmethod entity-hit(attacker attackee)
   (hit-proc attacker attackee))
