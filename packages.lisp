@@ -268,9 +268,10 @@
 (defpackage :rl.ai
   (:use :rl.entity :rl.state :rl.event :cl :cl-user)
   (:export :jump :continuate :go-next :subaction :ai-state
-	   :make-ai-state
-	   :action-execute :valid-action-p
-	   :wander :move-to-point :move-dir :follov :fight))
+   :make-ai-state
+	   :action-next
+   :action-execute :valid-action-p
+   :wander :move-to-point :move-dir :follov :fight))
 
 ;;General package
 

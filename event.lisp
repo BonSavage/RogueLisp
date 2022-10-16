@@ -156,11 +156,10 @@
    (error "~a failed to move from ~a to ~a" creature (get-pos creature) (add (get-pos creature) dir))))
 
 (defmethod try-to-move!(creature (dir pos))
-  (if (and (zerop (x dir)) (zerop (y dir)))
-      (make-turn creature 100)
-      (when (can-move-p creature dir)
-	(perform-movement creature dir)
-	(make-turn creature (if (or (zerop (x dir)) (zerop (y dir))) 100 141)))))
+  (when (or (can-move-p creature dir)
+	    (= 0 (x dir) (y dir)))
+    (perform-movement creature dir)
+    (make-turn creature (if (or (zerop (x dir)) (zerop (y dir))) 100 141))))
 
 (defun move-random!(creature &optional (tries 8))
   (or (try-to-move! creature (make-pos (1- (random 3)) (1- (random 3))))

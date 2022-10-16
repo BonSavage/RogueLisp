@@ -23,7 +23,7 @@
   (setf (gethash place *entities*) new-val))
 
 (defmethod remove-entity((pos pos) (entity entity))
-  (when (null (setf (get-entities pos) (delete entity (get-entities pos) :count 1)))
+  (when (null (setf (get-entities pos) (delete entity (get-entities pos) :count 1 :test #'eq)))
     (rem-entities pos)))
 
 (defmethod add-entity((pos pos) (entity entity))
